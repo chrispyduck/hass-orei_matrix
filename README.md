@@ -2,7 +2,7 @@
 
 Control your **Orei HDMI Matrix** switch directly from **Home Assistant** via Telnet.
 
-Supports power control, input/output switching, live state updates, and manual refresh.  
+Supports power control, input/output switching, live state updates, and configurable names.
 Compatible with multiple Orei models such as **UHD48-EX230-K**, etc.
 
 ---
@@ -10,8 +10,9 @@ Compatible with multiple Orei models such as **UHD48-EX230-K**, etc.
 ## ✨ Features
 
 - 🧠 **Automatic model detection** (`r type!`)
-- 🔌 **Global power control** (on/off)
-- 🎛 **Per-zone source selection** as media players
+- 🔌 **Global power control** (on/off via switch)
+- 🎛 **Per-output input selection** via select entities
+- ✏️ **Configurable input/output names** via text entities
 - 🔄 **Manual refresh service** (`orei_matrix.refresh`)
 - 🧩 **Dynamic device grouping** (all entities under one device)
 - 🪄 **Config Flow setup** (no YAML required)
@@ -21,15 +22,26 @@ Compatible with multiple Orei models such as **UHD48-EX230-K**, etc.
 
 ## 🖼 Example UI
 
-When configured, you’ll see a single device in Home Assistant:
+When configured, you'll see a single device in Home Assistant:
 
 > **Orei UHD48-EX230-K**
 >
 > - 🔌 `switch.orei_matrix_power`
-> - 🎚 `media_player.living_room`
-> - 🎚 `media_player.bedroom`
-> - 🎚 `media_player.office`
-> - 🎚 `media_player.patio`
+> - 🎛 `select.living_room_input`
+> - 🎛 `select.bedroom_input`
+> - 🎛 `select.office_input`
+> - 🎛 `select.patio_input`
+>
+> **Configuration**
+>
+> - ✏️ `text.input_1_name`
+> - ✏️ `text.input_2_name`
+> - ✏️ `text.input_3_name`
+> - ✏️ `text.input_4_name`
+> - ✏️ `text.output_1_name`
+> - ✏️ `text.output_2_name`
+> - ✏️ `text.output_3_name`
+> - ✏️ `text.output_4_name`
 
 ---
 
@@ -68,16 +80,30 @@ That’s it — entities will be created automatically.
 
 ## 🧩 Entities
 
-| Entity                     | Description                                          |
-| -------------------------- | ---------------------------------------------------- |
-| `switch.orei_matrix_power` | Controls main matrix power                           |
-| `media_player.<zone>`      | Represents each output zone (allows input selection) |
+| Entity                     | Description                                               |
+| -------------------------- | --------------------------------------------------------- |
+| `switch.orei_matrix_power` | Controls main matrix power                                |
+| `select.<output>_input`    | Select which input is routed to each output              |
+| `text.input_X_name`        | Configure the name for input X (Configuration category)  |
+| `text.output_X_name`       | Configure the name for output X (Configuration category) |
 
-Each media player exposes:
+### Select Entities
 
-- **Current source**
-- **Source selection list** (using configured names)
-- **Availability** (grayed out when matrix power is off)
+Each output gets a select entity that:
+
+- Shows all available inputs as options
+- Displays the currently selected input
+- Sends routing commands to the matrix when changed
+- Is grayed out when matrix power is off
+
+### Text Entities
+
+Input and output names can be customized via text entities:
+
+- Enter a custom name (1-50 characters)
+- Changes are saved to the integration configuration
+- The integration automatically reloads to apply new names
+- Updated names appear in all select entities and UI elements
 
 ---
 
