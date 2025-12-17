@@ -3,6 +3,7 @@ import logging
 
 _LOGGER = logging.getLogger(__name__)
 
+
 class OreiMatrixClient:
     """Async client for controlling Orei HDMI Matrix via Telnet."""
 
@@ -54,7 +55,7 @@ class OreiMatrixClient:
             await self._ensure_connected()
 
             try:
-                _LOGGER.debug("Sending command: %s", cmd)
+                _LOGGER.debug("→ Sending command to matrix: %s", cmd)
                 self._writer.write((cmd + "\r\n").encode("ascii"))
                 await self._writer.drain()
 
@@ -76,37 +77,40 @@ class OreiMatrixClient:
                     return ""
 
                 # --- Clean and parse ---
+                _LOGGER.debug("← Raw response from matrix: %s", chunks.hex(" "))
                 filtered = bytes(b for b in chunks if b < 0x80)
                 text = filtered.decode("ascii", errors="ignore").strip()
+                _LOGGER.debug("← Decoded text: %r", text)
 
                 # Split into lines, remove empty and banner/prompt lines
                 lines = [ln.strip() for ln in text.splitlines() if ln.strip()]
-                _LOGGER.debug("Parsed lines: %s", lines)
+                _LOGGER.debug("← Parsed lines: %s", lines)
 
                 # Remove echoed command and banner
                 cleaned = []
                 for line in lines:
                     if (
-                        line.startswith(cmd.split()[0]) or
-                        line.startswith("********") or
-                        line.startswith("FW Version") or
-                        line == ">" or
-                        "Welcome" in line
+                        line.startswith(cmd.split()[0])
+                        or line.startswith("********")
+                        or line.startswith("FW Version")
+                        or line == ">"
+                        or "Welcome" in line
                     ):
                         continue
-                    cleaned.append(line.strip('>'))
+                    cleaned.append(line.strip(">"))
 
+                _LOGGER.debug("← Cleaned response lines: %s", cleaned)
                 return cleaned
 
             except Exception as e:
                 _LOGGER.warning("Telnet command failed (%s), reconnecting...", e)
                 await self.disconnect()
                 raise
-    
+
     async def _send_command(self, cmd: str) -> str:
-        cleaned = await self._send_command_multiple(cmd);
+        cleaned = await self._send_command_multiple(cmd)
         response = cleaned[-1] if cleaned else ""
-        _LOGGER.debug("Cleaned response: %s", response)
+        _LOGGER.debug("← Final response for command '%s': %s", cmd, response)
         return response
 
     # -----------------------
